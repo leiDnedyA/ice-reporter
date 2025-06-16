@@ -16,10 +16,29 @@ interface MapComponentProps {
   onMarkerClick: (sighting: Sighting) => void;
 }
 
+// Providence County boundary coordinates (simplified)
+const providenceCountyBoundary = {
+  "type": "Feature",
+  "properties": {
+    "name": "Providence County, RI"
+  },
+  "geometry": {
+    "type": "Polygon",
+    "coordinates": [[
+      [-71.9, 41.7],
+      [-71.9, 42.0],
+      [-71.3, 42.0],
+      [-71.3, 41.7],
+      [-71.9, 41.7]
+    ]]
+  }
+};
+
 const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
+  const boundaryRef = useRef<L.GeoJSON | null>(null);
 
   // Memoize the marker click handler to prevent unnecessary re-renders
   const handleMarkerClick = useCallback((event: CustomEvent) => {
@@ -30,13 +49,24 @@ const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
     // Initialize map centered on Providence, RI
-    const map = L.map(mapRef.current).setView([41.8236, -71.4222], 13);
+    const map = L.map(mapRef.current).setView([41.8236, -71.4222], 10);
     mapInstanceRef.current = map;
 
     // Add OpenStreetMap tiles
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
+
+    // Add Providence County boundary
+    const boundaryLayer = L.geoJSON(providenceCountyBoundary as any, {
+      style: {
+        color: '#dc2626',
+        weight: 3,
+        fillColor: '#dc2626',
+        fillOpacity: 0.1
+      }
+    }).addTo(map);
+    boundaryRef.current = boundaryLayer;
 
     // Add markers for each sighting
     sightings.forEach(sighting => {
@@ -66,6 +96,10 @@ const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
       window.removeEventListener('markerClick', handleMarkerClick as EventListener);
       markersRef.current.forEach(marker => marker.remove());
       markersRef.current = [];
+      if (boundaryRef.current) {
+        boundaryRef.current.remove();
+        boundaryRef.current = null;
+      }
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;

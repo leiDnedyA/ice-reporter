@@ -93,79 +93,80 @@ export default function Home() {
 
       <main className="main-container">
         {activeTab === 'map' ? (
-          <div className="card">
-            <div className="card-header">
-              <h1 className="card-title">ICE Activity Map - Providence, Rhode Island</h1>
-            </div>
-            <div className="card-body">
-              <div className="alert alert-info">
-                <strong>Important:</strong> This map shows reported ICE activity in Providence. 
-                Click on markers for more details. All reports are community-sourced and should be verified independently.
-              </div>
-              <MapComponent 
-                sightings={sightings}
-                onMarkerClick={setSelectedSighting}
-              />
-              
-              {selectedSighting && (
-                <div className="card" style={{ marginTop: '1rem' }}>
-                  <div className="card-header">
-                    <h3 className="card-title">Sighting Details</h3>
-                  </div>
-                  <div className="card-body">
-                    <p><strong>Description:</strong> {selectedSighting.description}</p>
-                    <p><strong>Location:</strong> {selectedSighting.location}</p>
-                    <p><strong>Reported:</strong> {new Date(selectedSighting.timestamp).toLocaleString()}</p>
-                    {selectedSighting.imageUrl && (
-                      <div style={{ marginTop: '1rem' }}>
-                        <strong>Image:</strong>
-                        <Image 
-                          src={selectedSighting.imageUrl} 
-                          alt="Sighting" 
-                          width={300}
-                          height={200}
-                          style={{ maxWidth: '100%', height: 'auto', marginTop: '0.5rem', borderRadius: '4px' }}
-                        />
-                      </div>
-                    )}
-                    {selectedSighting.videoUrl && (
-                      <div style={{ marginTop: '1rem' }}>
-                        <strong>Video:</strong>
-                        <div style={{ marginTop: '0.5rem' }}>
-                          <iframe
-                            width="100%"
-                            height="315"
-                            src={selectedSighting.videoUrl.replace('watch?v=', 'embed/')}
-                            title="Sighting Video"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                          ></iframe>
-                        </div>
-                      </div>
-                    )}
-                    <button 
-                      className="btn btn-secondary" 
-                      onClick={() => setSelectedSighting(null)}
-                      style={{ marginTop: '1rem' }}
-                    >
-                      Close Details
-                    </button>
-                  </div>
+          <div className="map-view">
+            <MapComponent 
+              sightings={sightings}
+              onMarkerClick={setSelectedSighting}
+            />
+            
+            {selectedSighting && (
+              <div className="card" style={{ 
+                position: 'absolute', 
+                top: '100px', 
+                right: '20px', 
+                width: '350px', 
+                zIndex: 1000,
+                maxHeight: 'calc(100vh - 140px)',
+                overflowY: 'auto'
+              }}>
+                <div className="card-header">
+                  <h3 className="card-title">Sighting Details</h3>
                 </div>
-              )}
-            </div>
+                <div className="card-body">
+                  <p><strong>Description:</strong> {selectedSighting.description}</p>
+                  <p><strong>Location:</strong> {selectedSighting.location}</p>
+                  <p><strong>Reported:</strong> {new Date(selectedSighting.timestamp).toLocaleString()}</p>
+                  {selectedSighting.imageUrl && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <strong>Image:</strong>
+                      <Image 
+                        src={selectedSighting.imageUrl} 
+                        alt="Sighting" 
+                        width={300}
+                        height={200}
+                        style={{ maxWidth: '100%', height: 'auto', marginTop: '0.5rem', borderRadius: '4px' }}
+                      />
+                    </div>
+                  )}
+                  {selectedSighting.videoUrl && (
+                    <div style={{ marginTop: '1rem' }}>
+                      <strong>Video:</strong>
+                      <div style={{ marginTop: '0.5rem' }}>
+                        <iframe
+                          width="100%"
+                          height="200"
+                          src={selectedSighting.videoUrl.replace('watch?v=', 'embed/')}
+                          title="Sighting Video"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      </div>
+                    </div>
+                  )}
+                  <button 
+                    className="btn btn-secondary" 
+                    onClick={() => setSelectedSighting(null)}
+                    style={{ marginTop: '1rem' }}
+                  >
+                    Close Details
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
-          <div className="card">
-            <div className="card-header">
-              <h1 className="card-title">Report ICE Activity</h1>
-            </div>
-            <div className="card-body">
-              <ReportForm onReportSubmit={(newSighting: Sighting) => {
-                setSightings([...sightings, { ...newSighting, id: sightings.length + 1 }]);
-                setActiveTab('map');
-              }} />
+          <div className="report-view">
+            <div className="card">
+              <div className="card-header">
+                <h1 className="card-title">Report ICE Activity</h1>
+              </div>
+              <div className="card-body">
+                <ReportForm onReportSubmit={(newSighting: Sighting) => {
+                  setSightings([...sightings, { ...newSighting, id: sightings.length + 1 }]);
+                  setActiveTab('map');
+                }} />
+              </div>
             </div>
           </div>
         )}
