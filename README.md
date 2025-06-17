@@ -1,14 +1,15 @@
-# ICE Reporter - Providence, Rhode Island
+# ICE Reporter
 
-A community-driven application for reporting and tracking ICE (Immigration and Customs Enforcement) activity in Providence, Rhode Island. This application allows users to view reported ICE activity on an interactive map and submit new reports with location, descriptions, images, and videos.
+A community-driven application for reporting and tracking ICE (Immigration and Customs Enforcement) activity in any location. This application allows users to view reported ICE activity on an interactive map and submit new reports with location, descriptions, images, and videos.
 
 ## Features
 
 ### 🗺️ Interactive Map View
-- **Leaflet.js Map**: Interactive map centered on Providence, Rhode Island
+- **Leaflet.js Map**: Interactive map with configurable center location and zoom level
 - **Activity Markers**: Red markers indicate reported ICE activity locations
 - **Detailed Popups**: Click markers to view detailed information about each sighting
 - **Real-time Updates**: New reports appear on the map immediately
+- **Optional County Boundaries**: Configurable county/region boundaries with custom styling
 
 ### 📝 Report Submission
 - **Description Field**: Detailed text description of observed activity
@@ -22,6 +23,7 @@ A community-driven application for reporting and tracking ICE (Immigration and C
 - **Clean Interface**: Modern, accessible design with clear navigation
 - **Alert System**: Informational messages and error handling
 - **Loading States**: Visual feedback during location detection
+- **Full-Screen Map**: Immersive mapping experience
 
 ## Technology Stack
 
@@ -50,12 +52,14 @@ cd ice-reporter
 npm install
 ```
 
-3. Run the development server:
+3. Configure the application for your location (see Configuration section below)
+
+4. Run the development server:
 ```bash
 npm run dev
 ```
 
-4. Open [http://localhost:3000](http://localhost:3000) in your browser
+5. Open [http://localhost:3000](http://localhost:3000) in your browser
 
 ### Building for Production
 
@@ -64,11 +68,52 @@ npm run build
 npm start
 ```
 
+## Configuration
+
+The application is designed to be location-agnostic and can be easily configured for any city or region. Edit the `APP_CONFIG` object in `pages/index.tsx`:
+
+```typescript
+const APP_CONFIG = {
+  title: "ICE Reporter", // Your app title
+  description: "Report and track ICE activity in your community", // App description
+  defaultCenter: [41.8236, -71.4222] as [number, number], // [latitude, longitude] for your location
+  defaultZoom: 13, // Initial zoom level (1-18)
+  showCountyBoundary: false, // Set to true to show county/region boundaries
+  countyBoundary: null // Add GeoJSON data for boundaries if needed
+};
+```
+
+### Example Configurations
+
+**For Los Angeles, CA:**
+```typescript
+const APP_CONFIG = {
+  title: "ICE Reporter - Los Angeles",
+  description: "Report and track ICE activity in Los Angeles County",
+  defaultCenter: [34.0522, -118.2437],
+  defaultZoom: 10,
+  showCountyBoundary: true,
+  countyBoundary: losAngelesCountyGeoJSON // Add your GeoJSON data
+};
+```
+
+**For New York City:**
+```typescript
+const APP_CONFIG = {
+  title: "ICE Reporter - NYC",
+  description: "Report and track ICE activity in New York City",
+  defaultCenter: [40.7128, -74.0060],
+  defaultZoom: 11,
+  showCountyBoundary: false,
+  countyBoundary: null
+};
+```
+
 ## Usage
 
 ### Viewing ICE Activity
 1. Navigate to the "View Map" tab
-2. The map shows Providence, Rhode Island with red markers indicating reported activity
+2. The map shows your configured location with red markers indicating reported activity
 3. Click on any marker to view detailed information including:
    - Description of the activity
    - Location details
@@ -94,9 +139,9 @@ npm start
 ```
 ice-reporter/
 ├── components/
-│   └── MapComponent.tsx      # Leaflet.js map component
+│   └── MapComponent.tsx      # Configurable Leaflet.js map component
 ├── pages/
-│   ├── index.tsx             # Main application page
+│   ├── index.tsx             # Main application page with APP_CONFIG
 │   ├── _app.tsx              # App wrapper
 │   └── _document.tsx         # Document wrapper
 ├── styles/
@@ -134,6 +179,25 @@ interface Sighting {
 - **Geolocation**: Requires user permission and HTTPS in production
 - **Image/Video Hosting**: Users must host media on external services (Imgur, YouTube, etc.)
 
+## Customization Options
+
+### Adding County Boundaries
+To add county or regional boundaries:
+
+1. Obtain GeoJSON data for your region
+2. Set `showCountyBoundary: true` in APP_CONFIG
+3. Add your GeoJSON data to the `countyBoundary` property
+
+### Customizing Map Style
+The map uses OpenStreetMap tiles by default. You can customize the map style by modifying the tile layer URL in `MapComponent.tsx`.
+
+### Adding Custom Features
+The modular design makes it easy to add:
+- Custom marker icons
+- Different map layers
+- Additional form fields
+- Filtering and search functionality
+
 ## Future Enhancements
 
 - **Backend Integration**: Database storage for persistent reports
@@ -143,15 +207,17 @@ interface Sighting {
 - **Mobile App**: Native mobile application
 - **API Integration**: Integration with external mapping and geocoding services
 - **Moderation System**: Report verification and moderation tools
+- **Multi-language Support**: Internationalization for different communities
 
 ## Contributing
 
-This is a template application. For production use, consider:
+This is a template application designed to be easily adapted for different communities. For production use, consider:
 - Adding a backend API for data persistence
 - Implementing user authentication and authorization
 - Adding data validation and moderation features
 - Integrating with external services for geocoding and media hosting
 - Adding analytics and reporting features
+- Customizing the interface for your specific community needs
 
 ## License
 

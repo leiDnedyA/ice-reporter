@@ -18,6 +18,10 @@ interface Sighting {
 interface MapComponentProps {
   sightings: Sighting[];
   onMarkerClick: (sighting: Sighting) => void;
+  center?: [number, number];
+  zoom?: number;
+  showCountyBoundary?: boolean;
+  countyBoundary?: any;
 }
 
 // Dynamically import the map component to avoid SSR issues with Leaflet
@@ -26,12 +30,22 @@ const MapComponent = dynamic<MapComponentProps>(() => import('../components/MapC
   loading: () => <div className="leaflet-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f3f4f6' }}>Loading map...</div>
 });
 
+// App configuration - can be customized for different locations
+const APP_CONFIG = {
+  title: "ICE Reporter",
+  description: "Report and track ICE activity in your community",
+  defaultCenter: [41.8236, -71.4222] as [number, number], // Default to Providence, can be changed
+  defaultZoom: 13,
+  showCountyBoundary: false, // Set to true and provide countyBoundary data if needed
+  countyBoundary: null // Add GeoJSON data for county boundary if needed
+};
+
 // Sample data for demonstration
 const sampleSightings: Sighting[] = [
   {
     id: 1,
-    description: "ICE vehicle spotted near Kennedy Plaza",
-    location: "Kennedy Plaza, Providence, RI",
+    description: "ICE vehicle spotted near downtown area",
+    location: "Downtown Area",
     coordinates: [41.8236, -71.4222],
     timestamp: "2024-01-15T10:30:00Z",
     imageUrl: "https://via.placeholder.com/300x200?text=ICE+Activity",
@@ -39,8 +53,8 @@ const sampleSightings: Sighting[] = [
   },
   {
     id: 2,
-    description: "ICE agents conducting operations near Federal Hill",
-    location: "Federal Hill, Providence, RI",
+    description: "ICE agents conducting operations in residential neighborhood",
+    location: "Residential Neighborhood",
     coordinates: [41.8189, -71.4128],
     timestamp: "2024-01-14T14:15:00Z",
     imageUrl: null,
@@ -48,8 +62,8 @@ const sampleSightings: Sighting[] = [
   },
   {
     id: 3,
-    description: "ICE checkpoint reported on Broad Street",
-    location: "Broad Street, Providence, RI",
+    description: "ICE checkpoint reported on main street",
+    location: "Main Street",
     coordinates: [41.8167, -71.4000],
     timestamp: "2024-01-13T08:45:00Z",
     imageUrl: "https://via.placeholder.com/300x200?text=Checkpoint",
@@ -65,15 +79,15 @@ export default function Home() {
   return (
     <>
       <Head>
-        <title>ICE Reporter - Providence, RI</title>
-        <meta name="description" content="Report and track ICE activity in Providence, Rhode Island" />
+        <title>{APP_CONFIG.title}</title>
+        <meta name="description" content={APP_CONFIG.description} />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <nav className="nav">
         <div className="nav-container">
-          <div className="nav-brand">ICE Reporter - Providence</div>
+          <div className="nav-brand">{APP_CONFIG.title}</div>
           <div className="nav-links">
             <button 
               className={`nav-link ${activeTab === 'map' ? 'text-white' : ''}`}
@@ -97,6 +111,10 @@ export default function Home() {
             <MapComponent 
               sightings={sightings}
               onMarkerClick={setSelectedSighting}
+              center={APP_CONFIG.defaultCenter}
+              zoom={APP_CONFIG.defaultZoom}
+              showCountyBoundary={APP_CONFIG.showCountyBoundary}
+              countyBoundary={APP_CONFIG.countyBoundary}
             />
             
             {selectedSighting && (
@@ -162,10 +180,13 @@ export default function Home() {
                 <h1 className="card-title">Report ICE Activity</h1>
               </div>
               <div className="card-body">
-                <ReportForm onReportSubmit={(newSighting: Sighting) => {
-                  setSightings([...sightings, { ...newSighting, id: sightings.length + 1 }]);
-                  setActiveTab('map');
-                }} />
+                <ReportForm 
+                  onReportSubmit={(newSighting: Sighting) => {
+                    setSightings([...sightings, { ...newSighting, id: sightings.length + 1 }]);
+                    setActiveTab('map');
+                  }}
+                  defaultCoordinates={APP_CONFIG.defaultCenter}
+                />
               </div>
             </div>
           </div>
@@ -175,7 +196,13 @@ export default function Home() {
   );
 }
 
-function ReportForm({ onReportSubmit }: { onReportSubmit: (sighting: Sighting) => void }) {
+function ReportForm({ 
+  onReportSubmit, 
+  defaultCoordinates 
+}: { 
+  onReportSubmit: (sighting: Sighting) => void;
+  defaultCoordinates: [number, number];
+}) {
   const [formData, setFormData] = useState({
     description: '',
     location: '',
@@ -238,7 +265,7 @@ function ReportForm({ onReportSubmit }: { onReportSubmit: (sighting: Sighting) =
       location: formData.location,
       coordinates: formData.useCurrentLocation ? 
         formData.location.split(',').map(coord => parseFloat(coord.trim())) as [number, number] : 
-        [41.8236, -71.4222], // Default to Providence center
+        defaultCoordinates, // Use configurable default coordinates
       timestamp: new Date().toISOString(),
       imageUrl: formData.imageUrl || null,
       videoUrl: formData.videoUrl || null,

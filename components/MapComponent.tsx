@@ -14,27 +14,20 @@ interface Sighting {
 interface MapComponentProps {
   sightings: Sighting[];
   onMarkerClick: (sighting: Sighting) => void;
+  center?: [number, number];
+  zoom?: number;
+  showCountyBoundary?: boolean;
+  countyBoundary?: any;
 }
 
-// Providence County boundary coordinates (simplified)
-const providenceCountyBoundary = {
-  "type": "Feature",
-  "properties": {
-    "name": "Providence County, RI"
-  },
-  "geometry": {
-    "type": "Polygon",
-    "coordinates": [[
-      [-71.9, 41.7],
-      [-71.9, 42.0],
-      [-71.3, 42.0],
-      [-71.3, 41.7],
-      [-71.9, 41.7]
-    ]]
-  }
-};
-
-const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
+const MapComponent = ({ 
+  sightings, 
+  onMarkerClick, 
+  center = [41.8236, -71.4222], 
+  zoom = 13,
+  showCountyBoundary = false,
+  countyBoundary = null
+}: MapComponentProps) => {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
@@ -48,8 +41,8 @@ const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
   useEffect(() => {
     if (!mapRef.current || mapInstanceRef.current) return;
 
-    // Initialize map centered on Providence, RI
-    const map = L.map(mapRef.current).setView([41.8236, -71.4222], 10);
+    // Initialize map with configurable center and zoom
+    const map = L.map(mapRef.current).setView(center, zoom);
     mapInstanceRef.current = map;
 
     // Add OpenStreetMap tiles
@@ -57,16 +50,18 @@ const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
       attribution: '© OpenStreetMap contributors'
     }).addTo(map);
 
-    // Add Providence County boundary
-    const boundaryLayer = L.geoJSON(providenceCountyBoundary as any, {
-      style: {
-        color: '#dc2626',
-        weight: 3,
-        fillColor: '#dc2626',
-        fillOpacity: 0.1
-      }
-    }).addTo(map);
-    boundaryRef.current = boundaryLayer;
+    // Add county boundary if provided and enabled
+    if (showCountyBoundary && countyBoundary) {
+      const boundaryLayer = L.geoJSON(countyBoundary as any, {
+        style: {
+          color: '#dc2626',
+          weight: 3,
+          fillColor: '#dc2626',
+          fillOpacity: 0.1
+        }
+      }).addTo(map);
+      boundaryRef.current = boundaryLayer;
+    }
 
     // Add markers for each sighting
     sightings.forEach(sighting => {
@@ -105,7 +100,7 @@ const MapComponent = ({ sightings, onMarkerClick }: MapComponentProps) => {
         mapInstanceRef.current = null;
       }
     };
-  }, [sightings, handleMarkerClick]);
+  }, [sightings, handleMarkerClick, center, zoom, showCountyBoundary, countyBoundary]);
 
   // Update markers when sightings change
   useEffect(() => {
